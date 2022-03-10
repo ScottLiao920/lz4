@@ -45,15 +45,22 @@ LIBVER  := $(shell echo $(LIBVER_SCRIPT))
 
 BUILD_SHARED:=yes
 BUILD_STATIC:=yes
+BUILD_SGX := no
 
 CPPFLAGS+= -DXXH_NAMESPACE=LZ4_
 CPPFLAGS+= $(MOREFLAGS)
-CFLAGS  ?= -O3
+CFLAGS  ?= -O0
 DEBUGFLAGS:= -Wall -Wextra -Wcast-qual -Wcast-align -Wshadow \
              -Wswitch-enum -Wdeclaration-after-statement -Wstrict-prototypes \
              -Wundef -Wpointer-arith -Wstrict-aliasing=1
 CFLAGS  += $(DEBUGFLAGS)
 FLAGS    = $(CFLAGS) $(CPPFLAGS) $(LDFLAGS)
+SGXLDFLAGS := 	-Wl,--no-undefined -nostdlib -nodefaultlibs -nostartfiles -L/opt/intel/sgxsdk/lib64 \
+              	-Wl,--whole-archive -lsgx_trts -Wl,--no-whole-archive \
+              	-Wl,--start-group -lsgx_tstdc -lsgx_tcxx -lsgx_tcrypto -lsgx_tservice -Wl,--end-group \
+              	-Wl,-Bsymbolic -Wl,--no-undefined
+SGXINCFLAGS = $(addprefix -I, /opt/intel/sgxsdk/include /opt/intel/sgxsdk/include/tlibc)
+SGXFLAGS = $(CFLAGS) $(SGXINCFLAGS) $(CPPFLAGS) $(SGXLDFLAGS)
 
 SRCFILES := $(sort $(wildcard *.c))
 
@@ -83,7 +90,14 @@ lib-release: DEBUGFLAGS :=
 lib-release: lib
 
 .PHONY: lib
-lib: liblz4.a liblz4
+lib: liblz4.a liblz4 liblz4sgx.a
+
+liblz4sgx.a: $(SRCFILES)
+ifeq ($(BUILD_SGX),yes) #build a sgx-compatible version of lz4
+	@echo compiling sgx-compatible static library
+	$(CC) $(SGXFLAGS) -c $^
+	$(AR) rcs $@ *.o
+endif
 
 .PHONY: all
 all: lib
@@ -98,6 +112,7 @@ ifeq ($(BUILD_STATIC),yes)  # can be disabled on command line
 	$(COMPILE.c) $^
 	$(AR) rcs $@ *.o
 endif
+
 
 ifeq ($(WINBASED),yes)
 liblz4-dll.rc: liblz4-dll.rc.in
@@ -186,6 +201,10 @@ install: lib liblz4.pc
 	$(INSTALL_DATA) liblz4.a $(DESTDIR)$(libdir)/liblz4.a
 	$(INSTALL_DATA) lz4frame_static.h $(DESTDIR)$(includedir)/lz4frame_static.h
   endif
+ifeq ($(BUILD_SGX),yes)
+	$(INSTALL_DATA) liblz4sgx.a $(DESTDIR)$(libdir)/liblz4sgx.a
+#	$(INSTALL_DATA) lz4frame_static.h $(DESTDIR)$(includedir)/lz4frame_static.h
+endif
   ifeq ($(BUILD_SHARED),yes)
 # Traditionally, one installs the DLLs in the bin directory as programs
 # search them first in their directory. This allows to not pollute system
