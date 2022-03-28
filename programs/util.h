@@ -37,18 +37,24 @@ extern "C" {
 #include <assert.h>
 #include <sys/types.h>    /* stat, utime */
 #include <sys/stat.h>     /* stat */
+
 #if defined(_WIN32)
 #  include <sys/utime.h>  /* utime */
 #  include <io.h>         /* _chmod */
 #else
+
 #  include <unistd.h>     /* chown, stat */
+
 # if PLATFORM_POSIX_VERSION < 200809L
 #  include <utime.h>      /* utime */
 # else
+
 #  include <fcntl.h>      /* AT_FDCWD */
 #  include <sys/stat.h>   /* for utimensat */
+
 # endif
 #endif
+
 #include <time.h>         /* time */
 #include <limits.h>       /* INT_MAX */
 #include <errno.h>
@@ -58,23 +64,25 @@ extern "C" {
 /*-**************************************************************
 *  Basic Types
 *****************************************************************/
-#if !defined (__VMS) && (defined (__cplusplus) || (defined (__STDC_VERSION__) && (__STDC_VERSION__ >= 199901L) /* C99 */) )
+#if !defined (__VMS) && (defined (__cplusplus) || (defined (__STDC_VERSION__) && (__STDC_VERSION__ >= 199901L) /* C99 */))
+
 # include <stdint.h>
-  typedef  uint8_t BYTE;
-  typedef uint16_t U16;
-  typedef  int16_t S16;
-  typedef uint32_t U32;
-  typedef  int32_t S32;
-  typedef uint64_t U64;
-  typedef  int64_t S64;
+
+typedef uint8_t BYTE;
+typedef uint16_t U16;
+typedef int16_t S16;
+typedef uint32_t U32;
+typedef int32_t S32;
+typedef uint64_t U64;
+typedef int64_t S64;
 #else
-  typedef unsigned char       BYTE;
-  typedef unsigned short      U16;
-  typedef   signed short      S16;
-  typedef unsigned int        U32;
-  typedef   signed int        S32;
-  typedef unsigned long long  U64;
-  typedef   signed long long  S64;
+typedef unsigned char       BYTE;
+typedef unsigned short      U16;
+typedef   signed short      S16;
+typedef unsigned int        U32;
+typedef   signed int        S32;
+typedef unsigned long long  U64;
+typedef   signed long long  S64;
 #endif
 
 
@@ -101,9 +109,11 @@ extern "C" {
 #  define UTIL_sleep(s) Sleep(1000*s)
 #  define UTIL_sleepMilli(milli) Sleep(milli)
 #elif PLATFORM_POSIX_VERSION >= 0 /* Unix-like operating system */
+
 #  include <unistd.h>
 #  include <sys/resource.h> /* setpriority */
 #  include <time.h>         /* clock_t, nanosleep, clock, CLOCKS_PER_SEC */
+
 #  if defined(PRIO_PROCESS)
 #    define SET_REALTIME_PRIORITY setpriority(PRIO_PROCESS, 0, -20)
 #  else
@@ -180,122 +190,121 @@ extern "C" {
 ******************************************/
 #if defined(_WIN32)   /* Windows */
 
-    typedef LARGE_INTEGER UTIL_time_t;
-    UTIL_STATIC UTIL_time_t UTIL_getTime(void) { UTIL_time_t x; QueryPerformanceCounter(&x); return x; }
-    UTIL_STATIC U64 UTIL_getSpanTimeMicro(UTIL_time_t clockStart, UTIL_time_t clockEnd)
-    {
-        static LARGE_INTEGER ticksPerSecond;
-        static int init = 0;
-        if (!init) {
-            if (!QueryPerformanceFrequency(&ticksPerSecond))
-                fprintf(stderr, "ERROR: QueryPerformanceFrequency() failure\n");
-            init = 1;
-        }
-        return 1000000ULL*(clockEnd.QuadPart - clockStart.QuadPart)/ticksPerSecond.QuadPart;
+typedef LARGE_INTEGER UTIL_time_t;
+UTIL_STATIC UTIL_time_t UTIL_getTime(void) { UTIL_time_t x; QueryPerformanceCounter(&x); return x; }
+UTIL_STATIC U64 UTIL_getSpanTimeMicro(UTIL_time_t clockStart, UTIL_time_t clockEnd)
+{
+    static LARGE_INTEGER ticksPerSecond;
+    static int init = 0;
+    if (!init) {
+        if (!QueryPerformanceFrequency(&ticksPerSecond))
+            fprintf(stderr, "ERROR: QueryPerformanceFrequency() failure\n");
+        init = 1;
     }
-    UTIL_STATIC U64 UTIL_getSpanTimeNano(UTIL_time_t clockStart, UTIL_time_t clockEnd)
-    {
-        static LARGE_INTEGER ticksPerSecond;
-        static int init = 0;
-        if (!init) {
-            if (!QueryPerformanceFrequency(&ticksPerSecond))
-                fprintf(stderr, "ERROR: QueryPerformanceFrequency() failure\n");
-            init = 1;
-        }
-        return 1000000000ULL*(clockEnd.QuadPart - clockStart.QuadPart)/ticksPerSecond.QuadPart;
+    return 1000000ULL*(clockEnd.QuadPart - clockStart.QuadPart)/ticksPerSecond.QuadPart;
+}
+UTIL_STATIC U64 UTIL_getSpanTimeNano(UTIL_time_t clockStart, UTIL_time_t clockEnd)
+{
+    static LARGE_INTEGER ticksPerSecond;
+    static int init = 0;
+    if (!init) {
+        if (!QueryPerformanceFrequency(&ticksPerSecond))
+            fprintf(stderr, "ERROR: QueryPerformanceFrequency() failure\n");
+        init = 1;
     }
+    return 1000000000ULL*(clockEnd.QuadPart - clockStart.QuadPart)/ticksPerSecond.QuadPart;
+}
 
 #elif defined(__APPLE__) && defined(__MACH__)
 
-    #include <mach/mach_time.h>
-    typedef U64 UTIL_time_t;
-    UTIL_STATIC UTIL_time_t UTIL_getTime(void) { return mach_absolute_time(); }
-    UTIL_STATIC U64 UTIL_getSpanTimeMicro(UTIL_time_t clockStart, UTIL_time_t clockEnd)
-    {
-        static mach_timebase_info_data_t rate;
-        static int init = 0;
-        if (!init) {
-            mach_timebase_info(&rate);
-            init = 1;
-        }
-        return (((clockEnd - clockStart) * (U64)rate.numer) / ((U64)rate.denom)) / 1000ULL;
+#include <mach/mach_time.h>
+typedef U64 UTIL_time_t;
+UTIL_STATIC UTIL_time_t UTIL_getTime(void) { return mach_absolute_time(); }
+UTIL_STATIC U64 UTIL_getSpanTimeMicro(UTIL_time_t clockStart, UTIL_time_t clockEnd)
+{
+    static mach_timebase_info_data_t rate;
+    static int init = 0;
+    if (!init) {
+        mach_timebase_info(&rate);
+        init = 1;
     }
-    UTIL_STATIC U64 UTIL_getSpanTimeNano(UTIL_time_t clockStart, UTIL_time_t clockEnd)
-    {
-        static mach_timebase_info_data_t rate;
-        static int init = 0;
-        if (!init) {
-            mach_timebase_info(&rate);
-            init = 1;
-        }
-        return ((clockEnd - clockStart) * (U64)rate.numer) / ((U64)rate.denom);
+    return (((clockEnd - clockStart) * (U64)rate.numer) / ((U64)rate.denom)) / 1000ULL;
+}
+UTIL_STATIC U64 UTIL_getSpanTimeNano(UTIL_time_t clockStart, UTIL_time_t clockEnd)
+{
+    static mach_timebase_info_data_t rate;
+    static int init = 0;
+    if (!init) {
+        mach_timebase_info(&rate);
+        init = 1;
     }
+    return ((clockEnd - clockStart) * (U64)rate.numer) / ((U64)rate.denom);
+}
 
-#elif (PLATFORM_POSIX_VERSION >= 200112L) && (defined __UCLIBC__ || (defined(__GLIBC__) && ((__GLIBC__ == 2 && __GLIBC_MINOR__ >= 17) || __GLIBC__ > 2) ) )
+#elif (PLATFORM_POSIX_VERSION >= 200112L) && (defined __UCLIBC__ || (defined(__GLIBC__) && ((__GLIBC__ == 2 && __GLIBC_MINOR__ >= 17) || __GLIBC__ > 2)))
 
-    #include <time.h>
-    typedef struct timespec UTIL_time_t;
-    UTIL_STATIC UTIL_time_t UTIL_getTime(void)
-    {
-        UTIL_time_t now;
-        if (clock_gettime(CLOCK_MONOTONIC, &now))
-            fprintf(stderr, "ERROR: Failed to get time\n");   /* we could also exit() */
-        return now;
+#include <time.h>
+
+typedef struct timespec UTIL_time_t;
+
+UTIL_STATIC UTIL_time_t UTIL_getTime(void) {
+    UTIL_time_t now;
+    if (clock_gettime(CLOCK_MONOTONIC, &now))
+        fprintf(stderr, "ERROR: Failed to get time\n");   /* we could also exit() */
+    return now;
+}
+
+UTIL_STATIC UTIL_time_t UTIL_getSpanTime(UTIL_time_t begin, UTIL_time_t end) {
+    UTIL_time_t diff;
+    if (end.tv_nsec < begin.tv_nsec) {
+        diff.tv_sec = (end.tv_sec - 1) - begin.tv_sec;
+        diff.tv_nsec = (end.tv_nsec + 1000000000ULL) - begin.tv_nsec;
     }
-    UTIL_STATIC UTIL_time_t UTIL_getSpanTime(UTIL_time_t begin, UTIL_time_t end)
-    {
-        UTIL_time_t diff;
-        if (end.tv_nsec < begin.tv_nsec) {
-            diff.tv_sec = (end.tv_sec - 1) - begin.tv_sec;
-            diff.tv_nsec = (end.tv_nsec + 1000000000ULL) - begin.tv_nsec;
-        } else {
-            diff.tv_sec = end.tv_sec - begin.tv_sec;
-            diff.tv_nsec = end.tv_nsec - begin.tv_nsec;
-        }
-        return diff;
+    else {
+        diff.tv_sec = end.tv_sec - begin.tv_sec;
+        diff.tv_nsec = end.tv_nsec - begin.tv_nsec;
     }
-    UTIL_STATIC U64 UTIL_getSpanTimeMicro(UTIL_time_t begin, UTIL_time_t end)
-    {
-        UTIL_time_t const diff = UTIL_getSpanTime(begin, end);
-        U64 micro = 0;
-        micro += 1000000ULL * diff.tv_sec;
-        micro += diff.tv_nsec / 1000ULL;
-        return micro;
-    }
-    UTIL_STATIC U64 UTIL_getSpanTimeNano(UTIL_time_t begin, UTIL_time_t end)
-    {
-        UTIL_time_t const diff = UTIL_getSpanTime(begin, end);
-        U64 nano = 0;
-        nano += 1000000000ULL * diff.tv_sec;
-        nano += diff.tv_nsec;
-        return nano;
-    }
+    return diff;
+}
+
+UTIL_STATIC U64 UTIL_getSpanTimeMicro(UTIL_time_t begin, UTIL_time_t end) {
+    UTIL_time_t const diff = UTIL_getSpanTime(begin, end);
+    U64 micro = 0;
+    micro += 1000000ULL * diff.tv_sec;
+    micro += diff.tv_nsec / 1000ULL;
+    return micro;
+}
+
+UTIL_STATIC U64 UTIL_getSpanTimeNano(UTIL_time_t begin, UTIL_time_t end) {
+    UTIL_time_t const diff = UTIL_getSpanTime(begin, end);
+    U64 nano = 0;
+    nano += 1000000000ULL * diff.tv_sec;
+    nano += diff.tv_nsec;
+    return nano;
+}
 
 #else   /* relies on standard C (note : clock_t measurements can be wrong when using multi-threading) */
 
-    typedef clock_t UTIL_time_t;
-    UTIL_STATIC UTIL_time_t UTIL_getTime(void) { return clock(); }
-    UTIL_STATIC U64 UTIL_getSpanTimeMicro(UTIL_time_t clockStart, UTIL_time_t clockEnd) { return 1000000ULL * (clockEnd - clockStart) / CLOCKS_PER_SEC; }
-    UTIL_STATIC U64 UTIL_getSpanTimeNano(UTIL_time_t clockStart, UTIL_time_t clockEnd) { return 1000000000ULL * (clockEnd - clockStart) / CLOCKS_PER_SEC; }
+typedef clock_t UTIL_time_t;
+UTIL_STATIC UTIL_time_t UTIL_getTime(void) { return clock(); }
+UTIL_STATIC U64 UTIL_getSpanTimeMicro(UTIL_time_t clockStart, UTIL_time_t clockEnd) { return 1000000ULL * (clockEnd - clockStart) / CLOCKS_PER_SEC; }
+UTIL_STATIC U64 UTIL_getSpanTimeNano(UTIL_time_t clockStart, UTIL_time_t clockEnd) { return 1000000000ULL * (clockEnd - clockStart) / CLOCKS_PER_SEC; }
 #endif
 
 
 /* returns time span in microseconds */
-UTIL_STATIC U64 UTIL_clockSpanMicro(UTIL_time_t clockStart)
-{
+UTIL_STATIC U64 UTIL_clockSpanMicro(UTIL_time_t clockStart) {
     UTIL_time_t const clockEnd = UTIL_getTime();
     return UTIL_getSpanTimeMicro(clockStart, clockEnd);
 }
 
 /* returns time span in nanoseconds */
-UTIL_STATIC U64 UTIL_clockSpanNano(UTIL_time_t clockStart)
-{
+UTIL_STATIC U64 UTIL_clockSpanNano(UTIL_time_t clockStart) {
     UTIL_time_t const clockEnd = UTIL_getTime();
     return UTIL_getSpanTimeNano(clockStart, clockEnd);
 }
 
-UTIL_STATIC void UTIL_waitForNextTick(void)
-{
+UTIL_STATIC void UTIL_waitForNextTick(void) {
     UTIL_time_t const clockStart = UTIL_getTime();
     UTIL_time_t clockEnd;
     do {
@@ -309,19 +318,19 @@ UTIL_STATIC void UTIL_waitForNextTick(void)
 *  File functions
 ******************************************/
 #if defined(_MSC_VER)
-    #define chmod _chmod
-    typedef struct __stat64 stat_t;
+#define chmod _chmod
+typedef struct __stat64 stat_t;
 #else
-    typedef struct stat stat_t;
+typedef struct stat stat_t;
 #endif
 
 
-UTIL_STATIC int UTIL_isRegFile(const char* infilename);
+UTIL_STATIC int UTIL_isRegFile(const char *infilename);
+
 UTIL_STATIC int UTIL_isRegFD(int fd);
 
 
-UTIL_STATIC int UTIL_setFileStat(const char *filename, stat_t *statbuf)
-{
+UTIL_STATIC int UTIL_setFileStat(const char *filename, stat_t *statbuf) {
     int res = 0;
 
     if (!UTIL_isRegFile(filename))
@@ -353,8 +362,7 @@ UTIL_STATIC int UTIL_setFileStat(const char *filename, stat_t *statbuf)
 }
 
 
-UTIL_STATIC int UTIL_getFDStat(int fd, stat_t *statbuf)
-{
+UTIL_STATIC int UTIL_getFDStat(int fd, stat_t *statbuf) {
     int r;
 #if defined(_MSC_VER)
     r = _fstat64(fd, statbuf);
@@ -366,8 +374,7 @@ UTIL_STATIC int UTIL_getFDStat(int fd, stat_t *statbuf)
     return 1;
 }
 
-UTIL_STATIC int UTIL_getFileStat(const char* infilename, stat_t *statbuf)
-{
+UTIL_STATIC int UTIL_getFileStat(const char *infilename, stat_t *statbuf) {
     int r;
 #if defined(_MSC_VER)
     r = _stat64(infilename, statbuf);
@@ -380,8 +387,7 @@ UTIL_STATIC int UTIL_getFileStat(const char* infilename, stat_t *statbuf)
 }
 
 
-UTIL_STATIC int UTIL_isRegFD(int fd)
-{
+UTIL_STATIC int UTIL_isRegFD(int fd) {
     stat_t statbuf;
 #ifdef _WIN32
     /* Windows runtime library always open file descriptors 0, 1 and 2 in text mode, therefore we can't use them for binary I/O */
@@ -391,15 +397,13 @@ UTIL_STATIC int UTIL_isRegFD(int fd)
 }
 
 
-UTIL_STATIC int UTIL_isRegFile(const char* infilename)
-{
+UTIL_STATIC int UTIL_isRegFile(const char *infilename) {
     stat_t statbuf;
     return UTIL_getFileStat(infilename, &statbuf); /* Only need to know whether it is a regular file */
 }
 
 
-UTIL_STATIC U32 UTIL_isDirectory(const char* infilename)
-{
+UTIL_STATIC U32 UTIL_isDirectory(const char *infilename) {
     int r;
     stat_t statbuf;
 #if defined(_MSC_VER)
@@ -413,8 +417,7 @@ UTIL_STATIC U32 UTIL_isDirectory(const char* infilename)
 }
 
 
-UTIL_STATIC U64 UTIL_getOpenFileSize(FILE* file)
-{
+UTIL_STATIC U64 UTIL_getOpenFileSize(FILE *file) {
     int r;
     int fd;
     struct UTIL_TYPE_stat statbuf;
@@ -426,26 +429,24 @@ UTIL_STATIC U64 UTIL_getOpenFileSize(FILE* file)
     }
     r = UTIL_fstat(fd, &statbuf);
     if (r || !UTIL_STAT_MODE_ISREG(statbuf.st_mode)) return 0;   /* No good... */
-    return (U64)statbuf.st_size;
+    return (U64) statbuf.st_size;
 }
 
 
-UTIL_STATIC U64 UTIL_getFileSize(const char* infilename)
-{
+UTIL_STATIC U64 UTIL_getFileSize(const char *infilename) {
     int r;
     struct UTIL_TYPE_stat statbuf;
 
     r = UTIL_stat(infilename, &statbuf);
     if (r || !UTIL_STAT_MODE_ISREG(statbuf.st_mode)) return 0;   /* No good... */
-    return (U64)statbuf.st_size;
+    return (U64) statbuf.st_size;
 }
 
 
-UTIL_STATIC U64 UTIL_getTotalFileSize(const char** fileNamesTable, unsigned nbFiles)
-{
+UTIL_STATIC U64 UTIL_getTotalFileSize(const char **fileNamesTable, unsigned nbFiles) {
     U64 total = 0;
     unsigned n;
-    for (n=0; n<nbFiles; n++)
+    for (n = 0; n < nbFiles; n++)
         total += UTIL_getFileSize(fileNamesTable[n]);
     return total;
 }
@@ -455,9 +456,8 @@ UTIL_STATIC U64 UTIL_getTotalFileSize(const char** fileNamesTable, unsigned nbFi
  * A modified version of realloc().
  * If UTIL_realloc() fails the original block is freed.
 */
-UTIL_STATIC void* UTIL_realloc(void* ptr, size_t size)
-{
-    void* const newptr = realloc(ptr, size);
+UTIL_STATIC void *UTIL_realloc(void *ptr, size_t size) {
+    void *const newptr = realloc(ptr, size);
     if (newptr) return newptr;
     free(ptr);
     return NULL;
@@ -530,13 +530,13 @@ UTIL_STATIC int UTIL_prepareFileList(const char* dirName, char** bufStart, size_
 
 #elif defined(__linux__) || (PLATFORM_POSIX_VERSION >= 200112L)  /* opendir, readdir require POSIX.1-2001 */
 #  define UTIL_HAS_CREATEFILELIST
+
 #  include <dirent.h>       /* opendir, readdir */
 #  include <string.h>       /* strerror, memcpy */
 
-UTIL_STATIC int UTIL_prepareFileList(const char* dirName, char** bufStart, size_t* pos, char** bufEnd)
-{
-    DIR* dir;
-    struct dirent * entry;
+UTIL_STATIC int UTIL_prepareFileList(const char *dirName, char **bufStart, size_t *pos, char **bufEnd) {
+    DIR *dir;
+    struct dirent *entry;
     size_t dirLength;
     int nbFiles = 0;
 
@@ -548,28 +548,42 @@ UTIL_STATIC int UTIL_prepareFileList(const char* dirName, char** bufStart, size_
     dirLength = strlen(dirName);
     errno = 0;
     while ((entry = readdir(dir)) != NULL) {
-        char* path;
+        char *path;
         size_t fnameLength, pathLength;
-        if (strcmp (entry->d_name, "..") == 0 ||
-            strcmp (entry->d_name, ".") == 0) continue;
+        if (strcmp(entry->d_name, "..") == 0 ||
+            strcmp(entry->d_name, ".") == 0)
+            continue;
         fnameLength = strlen(entry->d_name);
-        path = (char*)malloc(dirLength + fnameLength + 2);
-        if (!path) { closedir(dir); return 0; }
+        path = (char *) malloc(dirLength + fnameLength + 2);
+        if (!path) {
+            closedir(dir);
+            return 0;
+        }
         memcpy(path, dirName, dirLength);
         path[dirLength] = '/';
-        memcpy(path+dirLength+1, entry->d_name, fnameLength);
-        pathLength = dirLength+1+fnameLength;
+        memcpy(path + dirLength + 1, entry->d_name, fnameLength);
+        pathLength = dirLength + 1 + fnameLength;
         path[pathLength] = 0;
 
         if (UTIL_isDirectory(path)) {
-            nbFiles += UTIL_prepareFileList(path, bufStart, pos, bufEnd);  /* Recursively call "UTIL_prepareFileList" with the new path. */
-            if (*bufStart == NULL) { free(path); closedir(dir); return 0; }
-        } else {
+            nbFiles += UTIL_prepareFileList(path, bufStart, pos,
+                                            bufEnd);  /* Recursively call "UTIL_prepareFileList" with the new path. */
+            if (*bufStart == NULL) {
+                free(path);
+                closedir(dir);
+                return 0;
+            }
+        }
+        else {
             if (*bufStart + *pos + pathLength >= *bufEnd) {
-                size_t const newListSize = (size_t)(*bufEnd - *bufStart) + LIST_SIZE_INCREASE;
-                *bufStart = (char*)UTIL_realloc(*bufStart, newListSize);
+                size_t const newListSize = (size_t) (*bufEnd - *bufStart) + LIST_SIZE_INCREASE;
+                *bufStart = (char *) UTIL_realloc(*bufStart, newListSize);
                 *bufEnd = *bufStart + newListSize;
-                if (*bufStart == NULL) { free(path); closedir(dir); return 0; }
+                if (*bufStart == NULL) {
+                    free(path);
+                    closedir(dir);
+                    return 0;
+                }
             }
             if (*bufStart + *pos + pathLength < *bufEnd) {
                 strncpy(*bufStart + *pos, path, *bufEnd - (*bufStart + *pos));
@@ -607,51 +621,58 @@ UTIL_STATIC int UTIL_prepareFileList(const char* dirName, char** bufStart, size_
  * After finishing usage of the list the structures should be freed with UTIL_freeFileList(params: return value, allocatedBuffer)
  * In case of error UTIL_createFileList returns NULL and UTIL_freeFileList should not be called.
  */
-UTIL_STATIC const char**
-UTIL_createFileList(const char** inputNames, unsigned inputNamesNb,
-                    char** allocatedBuffer, unsigned* allocatedNamesNb)
-{
+UTIL_STATIC const char **
+UTIL_createFileList(const char **inputNames, unsigned inputNamesNb,
+                    char **allocatedBuffer, unsigned *allocatedNamesNb) {
     size_t pos;
     unsigned i, nbFiles;
-    char* buf = (char*)malloc(LIST_SIZE_INCREASE);
+    char *buf = (char *) malloc(LIST_SIZE_INCREASE);
     size_t bufSize = LIST_SIZE_INCREASE;
-    const char** fileTable;
+    const char **fileTable;
 
     if (!buf) return NULL;
 
-    for (i=0, pos=0, nbFiles=0; i<inputNamesNb; i++) {
+    for (i = 0, pos = 0, nbFiles = 0; i < inputNamesNb; i++) {
         if (!UTIL_isDirectory(inputNames[i])) {
             size_t const len = strlen(inputNames[i]) + 1;  /* include nul char */
             if (pos + len >= bufSize) {
                 while (pos + len >= bufSize) bufSize += LIST_SIZE_INCREASE;
-                buf = (char*)UTIL_realloc(buf, bufSize);
+                buf = (char *) UTIL_realloc(buf, bufSize);
                 if (!buf) return NULL;
             }
             assert(pos + len < bufSize);
             memcpy(buf + pos, inputNames[i], len);
             pos += len;
             nbFiles++;
-        } else {
-            char* bufend = buf + bufSize;
-            nbFiles += (unsigned)UTIL_prepareFileList(inputNames[i], &buf, &pos, &bufend);
+        }
+        else {
+            char *bufend = buf + bufSize;
+            nbFiles += (unsigned) UTIL_prepareFileList(inputNames[i], &buf, &pos, &bufend);
             if (buf == NULL) return NULL;
             assert(bufend > buf);
-            bufSize = (size_t)(bufend - buf);
-    }   }
+            bufSize = (size_t) (bufend - buf);
+        }
+    }
 
-    if (nbFiles == 0) { free(buf); return NULL; }
+    if (nbFiles == 0) {
+        free(buf);
+        return NULL;
+    }
 
-    fileTable = (const char**)malloc(((size_t)nbFiles+1) * sizeof(const char*));
-    if (!fileTable) { free(buf); return NULL; }
+    fileTable = (const char **) malloc(((size_t) nbFiles + 1) * sizeof(const char *));
+    if (!fileTable) {
+        free(buf);
+        return NULL;
+    }
 
-    for (i=0, pos=0; i<nbFiles; i++) {
+    for (i = 0, pos = 0; i < nbFiles; i++) {
         fileTable[i] = buf + pos;
         pos += strlen(fileTable[i]) + 1;
     }
 
     if (pos > bufSize) {
         free(buf);
-        free((void*)fileTable);
+        free((void *) fileTable);
         return NULL;
     }   /* can this happen ? */
 
@@ -663,10 +684,9 @@ UTIL_createFileList(const char** inputNames, unsigned inputNamesNb,
 
 
 UTIL_STATIC void
-UTIL_freeFileList(const char** filenameTable, char* allocatedBuffer)
-{
+UTIL_freeFileList(const char **filenameTable, char *allocatedBuffer) {
     if (allocatedBuffer) free(allocatedBuffer);
-    if (filenameTable) free((void*)filenameTable);
+    if (filenameTable) free((void *) filenameTable);
 }
 
 

@@ -57,7 +57,8 @@ class TestNonVerbose(unittest.TestCase):
                 self.assertEqual("1", nvinfo.frames, nvinfo.line)
                 all_concat_frames += 1
         self.assertNotEqual(None, all_concat_index, "Couldn't find concat-all file index.")
-        self.assertEqual(self.nvinfo_list[all_concat_index].frames, str(all_concat_frames), self.nvinfo_list[all_concat_index].line)
+        self.assertEqual(self.nvinfo_list[all_concat_index].frames, str(all_concat_frames),
+                         self.nvinfo_list[all_concat_index].line)
 
     def test_frame_types(self):
         for nvinfo in self.nvinfo_list:
@@ -84,7 +85,8 @@ class TestNonVerbose(unittest.TestCase):
     def test_ratio(self):
         for nvinfo in self.nvinfo_list:
             if "--content-size" in nvinfo.filename:
-                self.assertEqual(nvinfo.ratio, f"{float(nvinfo.exp_comp_size) / float(nvinfo.exp_unc_size) * 100:.2f}%", nvinfo.line)
+                self.assertEqual(nvinfo.ratio, f"{float(nvinfo.exp_comp_size) / float(nvinfo.exp_unc_size) * 100:.2f}%",
+                                 nvinfo.line)
 
     def test_uncompressed_size(self):
         for nvinfo in self.nvinfo_list:
@@ -104,7 +106,8 @@ class VerboseFileInfo(object):
             elif i == 1:
                 # Skip header
                 continue
-            frame_info = dict(zip(["frame", "type", "block", "checksum", "compressed", "uncompressed", "ratio"], line.split()))
+            frame_info = dict(
+                zip(["frame", "type", "block", "checksum", "compressed", "uncompressed", "ratio"], line.split()))
             frame_info["line"] = line
             self.frame_list.append(frame_info)
 
@@ -140,7 +143,8 @@ class TestVerbose(unittest.TestCase):
 
     def test_filename(self):
         for i, vinfo in enumerate(self.vinfo_list):
-            self.assertRegex(vinfo.filename, f"^test_list_.*({i + 1}/{len(self.vinfo_list)})".format(i + 1, len(self.vinfo_list)))
+            self.assertRegex(vinfo.filename,
+                             f"^test_list_.*({i + 1}/{len(self.vinfo_list)})".format(i + 1, len(self.vinfo_list)))
 
     def test_frame_number(self):
         for vinfo in self.vinfo_list:
@@ -173,16 +177,19 @@ class TestVerbose(unittest.TestCase):
         for i, frame_info in enumerate(self.cvinfo.frame_list):
             if "-2f-" not in self.cvinfo.file_frame_map[i]:
                 expected_size = os.path.getsize(self.cvinfo.file_frame_map[i])
-                self.assertEqual(self.cvinfo.frame_list[i]["compressed"], str(expected_size), self.cvinfo.frame_list[i]["line"])
+                self.assertEqual(self.cvinfo.frame_list[i]["compressed"], str(expected_size),
+                                 self.cvinfo.frame_list[i]["line"])
             total += int(self.cvinfo.frame_list[i]["compressed"])
-        self.assertEqual(total, self.cvinfo.compressed_size, f"Expected total sum ({total}) to match {self.cvinfo.filename} filesize")
+        self.assertEqual(total, self.cvinfo.compressed_size,
+                         f"Expected total sum ({total}) to match {self.cvinfo.filename} filesize")
 
     def test_uncompressed(self):
         for i, frame_info in enumerate(self.cvinfo.frame_list):
             ffm = self.cvinfo.file_frame_map[i]
             if "-2f-" not in ffm and "--content-size" in ffm:
                 expected_size_unc = int(ffm[ffm.rindex("_") + 1:ffm.index("M")]) * 1048576
-                self.assertEqual(self.cvinfo.frame_list[i]["uncompressed"], str(expected_size_unc), self.cvinfo.frame_list[i]["line"])
+                self.assertEqual(self.cvinfo.frame_list[i]["uncompressed"], str(expected_size_unc),
+                                 self.cvinfo.frame_list[i]["line"])
 
     def test_ratio(self):
         for i, frame_info in enumerate(self.cvinfo.frame_list):

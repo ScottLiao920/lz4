@@ -13,22 +13,21 @@
 #include "lz4.h"
 #include "lz4hc.h"
 
-int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size)
-{
+int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
     FUZZ_dataProducer_t *producer = FUZZ_dataProducer_create(data, size);
     int const level = FUZZ_dataProducer_range32(producer,
-        LZ4HC_CLEVEL_MIN, LZ4HC_CLEVEL_MAX);
+                                                LZ4HC_CLEVEL_MIN, LZ4HC_CLEVEL_MAX);
     size = FUZZ_dataProducer_remainingBytes(producer);
 
     size_t const dstCapacity = LZ4_compressBound(size);
-    char* const dst = (char*)malloc(dstCapacity);
-    char* const rt = (char*)malloc(size);
+    char *const dst = (char *) malloc(dstCapacity);
+    char *const rt = (char *) malloc(size);
 
     FUZZ_ASSERT(dst);
     FUZZ_ASSERT(rt);
 
     /* Compression must succeed and round trip correctly. */
-    int const dstSize = LZ4_compress_HC((const char*)data, dst, size,
+    int const dstSize = LZ4_compress_HC((const char *) data, dst, size,
                                         dstCapacity, level);
     FUZZ_ASSERT(dstSize > 0);
 

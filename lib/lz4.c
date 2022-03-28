@@ -166,7 +166,7 @@
 #endif
 
 #if (defined(__GNUC__) && (__GNUC__ >= 3)) || (defined(__INTEL_COMPILER) && (__INTEL_COMPILER >= 800)) || defined(__clang__)
-#  define expect(expr,value)    (__builtin_expect ((expr),(value)) )
+#  define expect(expr, value)    (__builtin_expect ((expr),(value)) )
 #else
 #  define expect(expr, value)    (expr)
 #endif
@@ -276,11 +276,13 @@ static int LZ4_isAligned(const void *ptr, size_t alignment) {
 #include <limits.h>
 
 #if defined(__cplusplus) || (defined (__STDC_VERSION__) && (__STDC_VERSION__ >= 199901L) /* C99 */)
+
 # include <stdint.h>
-typedef  uint8_t BYTE;
+
+typedef uint8_t BYTE;
 typedef uint16_t U16;
 typedef uint32_t U32;
-typedef  int32_t S32;
+typedef int32_t S32;
 typedef uint64_t U64;
 typedef uintptr_t uptrval;
 #else
@@ -296,7 +298,7 @@ typedef size_t uptrval;   /* generally true, except OpenVMS-64 */
 #endif
 
 #if defined(__x86_64__)
-typedef U64    reg_t;   /* 64-bits in x32 mode */
+typedef U64 reg_t;   /* 64-bits in x32 mode */
 #else
 typedef size_t reg_t;   /* 32-bits in x32 mode */
 #endif
@@ -349,14 +351,21 @@ static void LZ4_write32(void* memPtr, U32 value) { *(U32*)memPtr = value; }
 
 /* __pack instructions are safer, but compiler specific, hence potentially problematic for some compilers */
 /* currently only defined for gcc and icc */
-typedef union { U16 u16; U32 u32; reg_t uArch; } __attribute__((packed)) LZ4_unalign;
+typedef union {
+    U16 u16;
+    U32 u32;
+    reg_t uArch;
+} __attribute__((packed)) LZ4_unalign;
 
-static U16 LZ4_read16(const void* ptr) { return ((const LZ4_unalign*)ptr)->u16; }
-static U32 LZ4_read32(const void* ptr) { return ((const LZ4_unalign*)ptr)->u32; }
-static reg_t LZ4_read_ARCH(const void* ptr) { return ((const LZ4_unalign*)ptr)->uArch; }
+static U16 LZ4_read16(const void *ptr) { return ((const LZ4_unalign *) ptr)->u16; }
 
-static void LZ4_write16(void* memPtr, U16 value) { ((LZ4_unalign*)memPtr)->u16 = value; }
-static void LZ4_write32(void* memPtr, U32 value) { ((LZ4_unalign*)memPtr)->u32 = value; }
+static U32 LZ4_read32(const void *ptr) { return ((const LZ4_unalign *) ptr)->u32; }
+
+static reg_t LZ4_read_ARCH(const void *ptr) { return ((const LZ4_unalign *) ptr)->uArch; }
+
+static void LZ4_write16(void *memPtr, U16 value) { ((LZ4_unalign *) memPtr)->u16 = value; }
+
+static void LZ4_write32(void *memPtr, U32 value) { ((LZ4_unalign *) memPtr)->u32 = value; }
 
 #else  /* safe and portable access using memcpy() */
 
@@ -392,7 +401,8 @@ static void LZ4_write32(void *memPtr, U32 value) {
 static U16 LZ4_readLE16(const void *memPtr) {
     if (LZ4_isLittleEndian()) {
         return LZ4_read16(memPtr);
-    } else {
+    }
+    else {
         const BYTE *p = (const BYTE *) memPtr;
         return (U16) ((U16) p[0] + (p[1] << 8));
     }
@@ -401,7 +411,8 @@ static U16 LZ4_readLE16(const void *memPtr) {
 static void LZ4_writeLE16(void *memPtr, U16 value) {
     if (LZ4_isLittleEndian()) {
         LZ4_write16(memPtr, value);
-    } else {
+    }
+    else {
         BYTE *p = (BYTE *) memPtr;
         p[0] = (BYTE) value;
         p[1] = (BYTE) (value >> 8);
@@ -419,8 +430,7 @@ void LZ4_wildCopy8(void *dstPtr, const void *srcPtr, void *dstEnd) {
         LZ4_memcpy(d, s, 8);
         d += 8;
         s += 8;
-    }
-    while (d < e);
+    } while (d < e);
 }
 
 static const unsigned inc32table[8] = {0, 1, 2, 1, 0, 4, 4, 4};
@@ -445,8 +455,7 @@ static const int dec64table[8] = {0, 0, 0, -1, -4, 1, 2, 3};
 #if LZ4_FAST_DEC_LOOP
 
 LZ4_FORCE_INLINE void
-LZ4_memcpy_using_offset_base(BYTE* dstPtr, const BYTE* srcPtr, BYTE* dstEnd, const size_t offset)
-{
+LZ4_memcpy_using_offset_base(BYTE *dstPtr, const BYTE *srcPtr, BYTE *dstEnd, const size_t offset) {
     assert(srcPtr + offset == dstPtr);
     if (offset < 8) {
         LZ4_write32(dstPtr, 0);   /* silence an msan warning when offset==0 */
@@ -455,10 +464,11 @@ LZ4_memcpy_using_offset_base(BYTE* dstPtr, const BYTE* srcPtr, BYTE* dstEnd, con
         dstPtr[2] = srcPtr[2];
         dstPtr[3] = srcPtr[3];
         srcPtr += inc32table[offset];
-        LZ4_memcpy(dstPtr+4, srcPtr, 4);
+        LZ4_memcpy(dstPtr + 4, srcPtr, 4);
         srcPtr -= dec64table[offset];
         dstPtr += 8;
-    } else {
+    }
+    else {
         LZ4_memcpy(dstPtr, srcPtr, 8);
         dstPtr += 8;
         srcPtr += 8;
@@ -471,41 +481,45 @@ LZ4_memcpy_using_offset_base(BYTE* dstPtr, const BYTE* srcPtr, BYTE* dstEnd, con
  * this version copies two times 16 bytes (instead of one time 32 bytes)
  * because it must be compatible with offsets >= 16. */
 LZ4_FORCE_INLINE void
-LZ4_wildCopy32(void* dstPtr, const void* srcPtr, void* dstEnd)
-{
-    BYTE* d = (BYTE*)dstPtr;
-    const BYTE* s = (const BYTE*)srcPtr;
-    BYTE* const e = (BYTE*)dstEnd;
+LZ4_wildCopy32(void *dstPtr, const void *srcPtr, void *dstEnd) {
+    BYTE *d = (BYTE *) dstPtr;
+    const BYTE *s = (const BYTE *) srcPtr;
+    BYTE *const e = (BYTE *) dstEnd;
 
-    do { LZ4_memcpy(d,s,16); LZ4_memcpy(d+16,s+16,16); d+=32; s+=32; } while (d<e);
+    do {
+        LZ4_memcpy(d, s, 16);
+        LZ4_memcpy(d + 16, s + 16, 16);
+        d += 32;
+        s += 32;
+    }
+    while (d < e);
 }
 
 /* LZ4_memcpy_using_offset()  presumes :
  * - dstEnd >= dstPtr + MINMATCH
  * - there is at least 8 bytes available to write after dstEnd */
 LZ4_FORCE_INLINE void
-LZ4_memcpy_using_offset(BYTE* dstPtr, const BYTE* srcPtr, BYTE* dstEnd, const size_t offset)
-{
+LZ4_memcpy_using_offset(BYTE *dstPtr, const BYTE *srcPtr, BYTE *dstEnd, const size_t offset) {
     BYTE v[8];
 
     assert(dstEnd >= dstPtr + MINMATCH);
 
-    switch(offset) {
-    case 1:
-        MEM_INIT(v, *srcPtr, 8);
-        break;
-    case 2:
-        LZ4_memcpy(v, srcPtr, 2);
-        LZ4_memcpy(&v[2], srcPtr, 2);
-        LZ4_memcpy(&v[4], v, 4);
-        break;
-    case 4:
-        LZ4_memcpy(v, srcPtr, 4);
-        LZ4_memcpy(&v[4], srcPtr, 4);
-        break;
-    default:
-        LZ4_memcpy_using_offset_base(dstPtr, srcPtr, dstEnd, offset);
-        return;
+    switch (offset) {
+        case 1:
+            MEM_INIT(v, *srcPtr, 8);
+            break;
+        case 2:
+            LZ4_memcpy(v, srcPtr, 2);
+            LZ4_memcpy(&v[2], srcPtr, 2);
+            LZ4_memcpy(&v[4], v, 4);
+            break;
+        case 4:
+            LZ4_memcpy(v, srcPtr, 4);
+            LZ4_memcpy(&v[4], srcPtr, 4);
+            break;
+        default:
+            LZ4_memcpy_using_offset_base(dstPtr, srcPtr, dstEnd, offset);
+            return;
     }
 
     LZ4_memcpy(dstPtr, v, 8);
@@ -515,6 +529,7 @@ LZ4_memcpy_using_offset(BYTE* dstPtr, const BYTE* srcPtr, BYTE* dstEnd, const si
         dstPtr += 8;
     }
 }
+
 #endif
 
 
@@ -546,13 +561,14 @@ static unsigned LZ4_NbCommonBytes(reg_t val) {
 #       elif (defined(__clang__) || (defined(__GNUC__) && ((__GNUC__ > 3) || \
                             ((__GNUC__ == 3) && (__GNUC_MINOR__ >= 4))))) && \
                                         !defined(LZ4_FORCE_SW_BITCOUNT)
-            return (unsigned)__builtin_ctzll((U64)val) >> 3;
+            return (unsigned) __builtin_ctzll((U64) val) >> 3;
 #       else
             const U64 m = 0x0101010101010101ULL;
             val ^= val - 1;
             return (unsigned) (((U64) ((val & (m - 1)) * m)) >> 56);
 #       endif
-        } else /* 32 bits */ {
+        }
+        else /* 32 bits */ {
 #       if defined(_MSC_VER) && (_MSC_VER >= 1400) && !defined(LZ4_FORCE_SW_BITCOUNT)
             unsigned long r;
             _BitScanForward(&r, (U32)val);
@@ -560,18 +576,19 @@ static unsigned LZ4_NbCommonBytes(reg_t val) {
 #       elif (defined(__clang__) || (defined(__GNUC__) && ((__GNUC__ > 3) || \
                             ((__GNUC__ == 3) && (__GNUC_MINOR__ >= 4))))) && \
                         !defined(__TINYC__) && !defined(LZ4_FORCE_SW_BITCOUNT)
-            return (unsigned)__builtin_ctz((U32)val) >> 3;
+            return (unsigned) __builtin_ctz((U32) val) >> 3;
 #       else
             const U32 m = 0x01010101;
             return (unsigned) ((((val - 1) ^ val) & (m - 1)) * m) >> 24;
 #       endif
         }
-    } else   /* Big Endian CPU */ {
+    }
+    else   /* Big Endian CPU */ {
         if (sizeof(val) == 8) {
 #       if (defined(__clang__) || (defined(__GNUC__) && ((__GNUC__ > 3) || \
                             ((__GNUC__ == 3) && (__GNUC_MINOR__ >= 4))))) && \
                         !defined(__TINYC__) && !defined(LZ4_FORCE_SW_BITCOUNT)
-            return (unsigned)__builtin_clzll((U64)val) >> 3;
+            return (unsigned) __builtin_clzll((U64) val) >> 3;
 #       else
 #if 1
             /* this method is probably faster,
@@ -603,11 +620,12 @@ static unsigned LZ4_NbCommonBytes(reg_t val) {
             return r;
 #endif
 #       endif
-        } else /* 32 bits */ {
+        }
+        else /* 32 bits */ {
 #       if (defined(__clang__) || (defined(__GNUC__) && ((__GNUC__ > 3) || \
                             ((__GNUC__ == 3) && (__GNUC_MINOR__ >= 4))))) && \
                                         !defined(LZ4_FORCE_SW_BITCOUNT)
-            return (unsigned)__builtin_clz((U32)val) >> 3;
+            return (unsigned) __builtin_clz((U32) val) >> 3;
 #       else
             val >>= 8;
             val = ((((val + 0x00FFFF00) | 0x00FFFFFF) + val) |
@@ -630,7 +648,8 @@ unsigned LZ4_count(const BYTE *pIn, const BYTE *pMatch, const BYTE *pInLimit) {
         if (!diff) {
             pIn += STEPSIZE;
             pMatch += STEPSIZE;
-        } else {
+        }
+        else {
             return LZ4_NbCommonBytes(diff);
         }
     }
@@ -749,7 +768,8 @@ LZ4_FORCE_INLINE U32 LZ4_hash5(U64 sequence, tableType_t const tableType) {
     if (LZ4_isLittleEndian()) {
         const U64 prime5bytes = 889523592379ULL;
         return (U32) (((sequence << 24) * prime5bytes) >> (64 - hashLog));
-    } else {
+    }
+    else {
         const U64 prime8bytes = 11400714785074694791ULL;
         return (U32) (((sequence >> 24) * prime8bytes) >> (64 - hashLog));
     }
@@ -899,7 +919,8 @@ LZ4_prepareTable(LZ4_stream_t_internal *const cctx,
             MEM_INIT(cctx->hashTable, 0, LZ4_HASHTABLESIZE);
             cctx->currentOffset = 0;
             cctx->tableType = (U32) clearedTable;
-        } else {
+        }
+        else {
             DEBUGLOG(4, "LZ4_prepareTable: Re-use hash table (no reset)");
         }
     }
@@ -991,7 +1012,8 @@ LZ4_FORCE_INLINE int LZ4_compress_generic_validated(
         /* Instead, they use the block we just compressed. */
         cctx->dictCtx = NULL;
         cctx->dictSize = (U32) inputSize;
-    } else {
+    }
+    else {
         cctx->dictSize += (U32) inputSize;
     }
     cctx->currentOffset += (U32) inputSize;
@@ -1031,7 +1053,8 @@ LZ4_FORCE_INLINE int LZ4_compress_generic_validated(
             } while ((match + LZ4_DISTANCE_MAX < ip)
                      || (LZ4_read32(match) != LZ4_read32(ip)));
 
-        } else {   /* byU32, byU16 */
+        }
+        else {   /* byU32, byU16 */
 
             const BYTE *forwardIp = ip;
             int step = 1;
@@ -1041,7 +1064,7 @@ LZ4_FORCE_INLINE int LZ4_compress_generic_validated(
                 U32 const current = (U32) (forwardIp - base);
                 U32 matchIndex = LZ4_getIndexOnHash(h, cctx->hashTable, tableType);
                 assert(matchIndex <= current);
-                assert(forwardIp - base < (ptrdiff_t)(2 GB - 1));
+                assert(forwardIp - base < (ptrdiff_t) (2 GB - 1));
                 ip = forwardIp;
                 forwardIp += step;
                 step = (searchMatchNb++ >> LZ4_skipTrigger);
@@ -1057,22 +1080,26 @@ LZ4_FORCE_INLINE int LZ4_compress_generic_validated(
                         match = dictBase + matchIndex;
                         matchIndex += dictDelta;   /* make dictCtx index comparable with current context */
                         lowLimit = dictionary;
-                    } else {
+                    }
+                    else {
                         match = base + matchIndex;
                         lowLimit = (const BYTE *) source;
                     }
-                } else if (dictDirective == usingExtDict) {
+                }
+                else if (dictDirective == usingExtDict) {
                     if (matchIndex < startIndex) {
                         DEBUGLOG(7, "extDict candidate: matchIndex=%5u  <  startIndex=%5u", matchIndex, startIndex);
                         assert(startIndex - matchIndex >= MINMATCH);
                         assert(dictBase);
                         match = dictBase + matchIndex;
                         lowLimit = dictionary;
-                    } else {
+                    }
+                    else {
                         match = base + matchIndex;
                         lowLimit = (const BYTE *) source;
                     }
-                } else {   /* single continuous memory segment */
+                }
+                else {   /* single continuous memory segment */
                     match = base + matchIndex;
                 }
                 forwardH = LZ4_hashPosition(forwardIp, tableType);
@@ -1123,7 +1150,8 @@ LZ4_FORCE_INLINE int LZ4_compress_generic_validated(
                 *token = (RUN_MASK << ML_BITS);
                 for (; len >= 255; len -= 255) *op++ = 255;
                 *op++ = (BYTE) len;
-            } else *token = (BYTE) (litLength << ML_BITS);
+            }
+            else *token = (BYTE) (litLength << ML_BITS);
 
             /* Copy Literals */
             LZ4_wildCopy8(op, anchor, op + litLength);
@@ -1155,7 +1183,8 @@ LZ4_FORCE_INLINE int LZ4_compress_generic_validated(
             assert(offset <= LZ4_DISTANCE_MAX && offset > 0);
             LZ4_writeLE16(op, (U16) offset);
             op += 2;
-        } else {
+        }
+        else {
             DEBUGLOG(6, "             with offset=%u  (same segment)", (U32) (ip - match));
             assert(ip - match <= LZ4_DISTANCE_MAX);
             LZ4_writeLE16(op, (U16) (ip - match));
@@ -1179,7 +1208,8 @@ LZ4_FORCE_INLINE int LZ4_compress_generic_validated(
                     ip += more;
                 }
                 DEBUGLOG(6, "             with matchLength=%u starting in extDict", matchCode + MINMATCH);
-            } else {
+            }
+            else {
                 matchCode = LZ4_count(ip + MINMATCH, match + MINMATCH, matchlimit);
                 ip += (size_t) matchCode + MINMATCH;
                 DEBUGLOG(6, "             with matchLength=%u", matchCode + MINMATCH);
@@ -1207,7 +1237,8 @@ LZ4_FORCE_INLINE int LZ4_compress_generic_validated(
                             LZ4_clearHash(h, cctx->hashTable, tableType);
                         }
                     }
-                } else {
+                }
+                else {
                     assert(outputDirective == limitedOutput);
                     return 0;   /* cannot compress within `dst` budget. Stored indexes in hash table are nonetheless fine */
                 }
@@ -1223,7 +1254,8 @@ LZ4_FORCE_INLINE int LZ4_compress_generic_validated(
                 }
                 op += matchCode / 255;
                 *op++ = (BYTE) (matchCode % 255);
-            } else
+            }
+            else
                 *token += (BYTE) (matchCode);
         }
         /* Ensure we have enough space for the last literals. */
@@ -1249,7 +1281,8 @@ LZ4_FORCE_INLINE int LZ4_compress_generic_validated(
                 goto _next_match;
             }
 
-        } else {   /* byU32, byU16 */
+        }
+        else {   /* byU32, byU16 */
 
             U32 const h = LZ4_hashPosition(ip, tableType);
             U32 const current = (U32) (ip - base);
@@ -1262,20 +1295,24 @@ LZ4_FORCE_INLINE int LZ4_compress_generic_validated(
                     match = dictBase + matchIndex;
                     lowLimit = dictionary;   /* required for match length counter */
                     matchIndex += dictDelta;
-                } else {
+                }
+                else {
                     match = base + matchIndex;
                     lowLimit = (const BYTE *) source;  /* required for match length counter */
                 }
-            } else if (dictDirective == usingExtDict) {
+            }
+            else if (dictDirective == usingExtDict) {
                 if (matchIndex < startIndex) {
                     assert(dictBase);
                     match = dictBase + matchIndex;
                     lowLimit = dictionary;   /* required for match length counter */
-                } else {
+                }
+                else {
                     match = base + matchIndex;
                     lowLimit = (const BYTE *) source;   /* required for match length counter */
                 }
-            } else {   /* single memory segment */
+            }
+            else {   /* single memory segment */
                 match = base + matchIndex;
             }
             LZ4_putIndexOnHash(current, h, cctx->hashTable, tableType);
@@ -1301,15 +1338,16 @@ LZ4_FORCE_INLINE int LZ4_compress_generic_validated(
     _last_literals:
     /* Encode Last Literals */
     {
-        size_t lastRun = (size_t)(iend - anchor);
+        size_t lastRun = (size_t) (iend - anchor);
         if ((outputDirective) &&  /* Check output buffer overflow */
             (op + lastRun + 1 + ((lastRun + 255 - RUN_MASK) / 255) > olimit)) {
             if (outputDirective == fillOutput) {
                 /* adapt lastRun to fill 'dst' */
                 assert(olimit >= op);
-                lastRun = (size_t)(olimit - op) - 1/*token*/;
+                lastRun = (size_t) (olimit - op) - 1/*token*/;
                 lastRun -= (lastRun + 256 - RUN_MASK) / 256;  /*additional length tokens*/
-            } else {
+            }
+            else {
                 assert(outputDirective == limitedOutput);
                 return 0;   /* cannot compress within `dst` budget. Stored indexes in hash table are nonetheless fine */
             }
@@ -1320,7 +1358,8 @@ LZ4_FORCE_INLINE int LZ4_compress_generic_validated(
             *op++ = RUN_MASK << ML_BITS;
             for (; accumulator >= 255; accumulator -= 255) *op++ = 255;
             *op++ = (BYTE) accumulator;
-        } else {
+        }
+        else {
             *op++ = (BYTE) (lastRun << ML_BITS);
         }
         LZ4_memcpy(op, anchor, lastRun);
@@ -1388,17 +1427,20 @@ int LZ4_compress_fast_extState(void *state, const char *source, char *dest, int 
         if (inputSize < LZ4_64Klimit) {
             return LZ4_compress_generic(ctx, source, dest, inputSize, NULL, 0, notLimited, byU16, noDict, noDictIssue,
                                         acceleration);
-        } else {
+        }
+        else {
             const tableType_t tableType = ((sizeof(void *) == 4) && ((uptrval) source > LZ4_DISTANCE_MAX)) ? byPtr
                                                                                                            : byU32;
             return LZ4_compress_generic(ctx, source, dest, inputSize, NULL, 0, notLimited, tableType, noDict,
                                         noDictIssue, acceleration);
         }
-    } else {
+    }
+    else {
         if (inputSize < LZ4_64Klimit) {
             return LZ4_compress_generic(ctx, source, dest, inputSize, NULL, maxOutputSize, limitedOutput, byU16, noDict,
                                         noDictIssue, acceleration);
-        } else {
+        }
+        else {
             const tableType_t tableType = ((sizeof(void *) == 4) && ((uptrval) source > LZ4_DISTANCE_MAX)) ? byPtr
                                                                                                            : byU32;
             return LZ4_compress_generic(ctx, source, dest, inputSize, NULL, maxOutputSize, limitedOutput, tableType,
@@ -1429,28 +1471,33 @@ int LZ4_compress_fast_extState_fastReset(void *state, const char *src, char *dst
             if (ctx->currentOffset) {
                 return LZ4_compress_generic(ctx, src, dst, srcSize, NULL, 0, notLimited, tableType, noDict, dictSmall,
                                             acceleration);
-            } else {
+            }
+            else {
                 return LZ4_compress_generic(ctx, src, dst, srcSize, NULL, 0, notLimited, tableType, noDict, noDictIssue,
                                             acceleration);
             }
-        } else {
+        }
+        else {
             const tableType_t tableType = ((sizeof(void *) == 4) && ((uptrval) src > LZ4_DISTANCE_MAX)) ? byPtr : byU32;
             LZ4_prepareTable(ctx, srcSize, tableType);
             return LZ4_compress_generic(ctx, src, dst, srcSize, NULL, 0, notLimited, tableType, noDict, noDictIssue,
                                         acceleration);
         }
-    } else {
+    }
+    else {
         if (srcSize < LZ4_64Klimit) {
             const tableType_t tableType = byU16;
             LZ4_prepareTable(ctx, srcSize, tableType);
             if (ctx->currentOffset) {
                 return LZ4_compress_generic(ctx, src, dst, srcSize, NULL, dstCapacity, limitedOutput, tableType, noDict,
                                             dictSmall, acceleration);
-            } else {
+            }
+            else {
                 return LZ4_compress_generic(ctx, src, dst, srcSize, NULL, dstCapacity, limitedOutput, tableType, noDict,
                                             noDictIssue, acceleration);
             }
-        } else {
+        }
+        else {
             const tableType_t tableType = ((sizeof(void *) == 4) && ((uptrval) src > LZ4_DISTANCE_MAX)) ? byPtr : byU32;
             LZ4_prepareTable(ctx, srcSize, tableType);
             return LZ4_compress_generic(ctx, src, dst, srcSize, NULL, dstCapacity, limitedOutput, tableType, noDict,
@@ -1494,11 +1541,13 @@ LZ4_compress_destSize_extState(LZ4_stream_t *state, const char *src, char *dst, 
 
     if (targetDstSize >= LZ4_compressBound(*srcSizePtr)) {  /* compression success is guaranteed */
         return LZ4_compress_fast_extState(state, src, dst, *srcSizePtr, targetDstSize, 1);
-    } else {
+    }
+    else {
         if (*srcSizePtr < LZ4_64Klimit) {
             return LZ4_compress_generic(&state->internal_donotuse, src, dst, *srcSizePtr, srcSizePtr, targetDstSize,
                                         fillOutput, byU16, noDict, noDictIssue, 1);
-        } else {
+        }
+        else {
             tableType_t const addrMode = ((sizeof(void *) == 4) && ((uptrval) src > LZ4_DISTANCE_MAX)) ? byPtr : byU32;
             return LZ4_compress_generic(&state->internal_donotuse, src, dst, *srcSizePtr, srcSizePtr, targetDstSize,
                                         fillOutput, addrMode, noDict, noDictIssue, 1);
@@ -1738,15 +1787,18 @@ int LZ4_compress_fast_continue(LZ4_stream_t *LZ4_stream,
                 LZ4_memcpy(streamPtr, streamPtr->dictCtx, sizeof(*streamPtr));
                 result = LZ4_compress_generic(streamPtr, source, dest, inputSize, NULL, maxOutputSize, limitedOutput,
                                               tableType, usingExtDict, noDictIssue, acceleration);
-            } else {
+            }
+            else {
                 result = LZ4_compress_generic(streamPtr, source, dest, inputSize, NULL, maxOutputSize, limitedOutput,
                                               tableType, usingDictCtx, noDictIssue, acceleration);
             }
-        } else {  /* small data <= 4 KB */
+        }
+        else {  /* small data <= 4 KB */
             if ((streamPtr->dictSize < 64 KB) && (streamPtr->dictSize < streamPtr->currentOffset)) {
                 result = LZ4_compress_generic(streamPtr, source, dest, inputSize, NULL, maxOutputSize, limitedOutput,
                                               tableType, usingExtDict, dictSmall, acceleration);
-            } else {
+            }
+            else {
                 result = LZ4_compress_generic(streamPtr, source, dest, inputSize, NULL, maxOutputSize, limitedOutput,
                                               tableType, usingExtDict, noDictIssue, acceleration);
             }
@@ -1768,7 +1820,8 @@ int LZ4_compress_forceExtDict(LZ4_stream_t *LZ4_dict, const char *source, char *
     if ((streamPtr->dictSize < 64 KB) && (streamPtr->dictSize < streamPtr->currentOffset)) {
         result = LZ4_compress_generic(streamPtr, source, dest, srcSize, NULL, 0, notLimited, byU32, usingExtDict,
                                       dictSmall, 1);
-    } else {
+    }
+    else {
         result = LZ4_compress_generic(streamPtr, source, dest, srcSize, NULL, 0, notLimited, byU32, usingExtDict,
                                       noDictIssue, 1);
     }
@@ -1936,42 +1989,50 @@ LZ4_decompress_generic(
             /* decode literal length */
             if (length == RUN_MASK) {
                 variable_length_error error = ok;
-                length += read_variable_length(&ip, iend-RUN_MASK, (int)endOnInput, (int)endOnInput, &error);
+                length += read_variable_length(&ip, iend - RUN_MASK, (int) endOnInput, (int) endOnInput, &error);
                 if (error == initial_error) { goto _output_error; }
-                if ((safeDecode) && unlikely((uptrval)(op)+length<(uptrval)(op))) { goto _output_error; } /* overflow detection */
-                if ((safeDecode) && unlikely((uptrval)(ip)+length<(uptrval)(ip))) { goto _output_error; } /* overflow detection */
+                if ((safeDecode) &&
+                    unlikely((uptrval) (op) + length < (uptrval) (op))) { goto _output_error; } /* overflow detection */
+                if ((safeDecode) &&
+                    unlikely((uptrval) (ip) + length < (uptrval) (ip))) { goto _output_error; } /* overflow detection */
 
                 /* copy literals */
-                cpy = op+length;
+                cpy = op + length;
                 LZ4_STATIC_ASSERT(MFLIMIT >= WILDCOPYLENGTH);
                 if (endOnInput) {  /* LZ4_decompress_safe() */
-                    if ((cpy>oend-32) || (ip+length>iend-32)) { goto safe_literal_copy; }
+                    if ((cpy > oend - 32) || (ip + length > iend - 32)) { goto safe_literal_copy; }
                     LZ4_wildCopy32(op, ip, cpy);
-                } else {   /* LZ4_decompress_fast() */
-                    if (cpy>oend-8) { goto safe_literal_copy; }
+                }
+                else {   /* LZ4_decompress_fast() */
+                    if (cpy > oend - 8) { goto safe_literal_copy; }
                     LZ4_wildCopy8(op, ip, cpy); /* LZ4_decompress_fast() cannot copy more than 8 bytes at a time :
                                                  * it doesn't know input length, and only relies on end-of-block properties */
                 }
-                ip += length; op = cpy;
-            } else {
-                cpy = op+length;
+                ip += length;
+                op = cpy;
+            }
+            else {
+                cpy = op + length;
                 if (endOnInput) {  /* LZ4_decompress_safe() */
-                    DEBUGLOG(7, "copy %u bytes in a 16-bytes stripe", (unsigned)length);
+                    DEBUGLOG(7, "copy %u bytes in a 16-bytes stripe", (unsigned) length);
                     /* We don't need to check oend, since we check it once for each loop below */
-                    if (ip > iend-(16 + 1/*max lit + offset + nextToken*/)) { goto safe_literal_copy; }
+                    if (ip > iend - (16 + 1/*max lit + offset + nextToken*/)) { goto safe_literal_copy; }
                     /* Literals can only be 14, but hope compilers optimize if we copy by a register size */
                     LZ4_memcpy(op, ip, 16);
-                } else {  /* LZ4_decompress_fast() */
+                }
+                else {  /* LZ4_decompress_fast() */
                     /* LZ4_decompress_fast() cannot copy more than 8 bytes at a time :
                      * it doesn't know input length, and relies on end-of-block properties */
                     LZ4_memcpy(op, ip, 8);
-                    if (length > 8) { LZ4_memcpy(op+8, ip+8, 8); }
+                    if (length > 8) { LZ4_memcpy(op + 8, ip + 8, 8); }
                 }
-                ip += length; op = cpy;
+                ip += length;
+                op = cpy;
             }
 
             /* get offset */
-            offset = LZ4_readLE16(ip); ip+=2;
+            offset = LZ4_readLE16(ip);
+            ip += 2;
             match = op - offset;
             assert(match <= op);
 
@@ -1980,15 +2041,18 @@ LZ4_decompress_generic(
 
             if (length == ML_MASK) {
                 variable_length_error error = ok;
-                if ((checkOffset) && (unlikely(match + dictSize < lowPrefix))) { goto _output_error; } /* Error : offset outside buffers */
-                length += read_variable_length(&ip, iend - LASTLITERALS + 1, (int)endOnInput, 0, &error);
+                if ((checkOffset) && (unlikely(
+                        match + dictSize < lowPrefix))) { goto _output_error; } /* Error : offset outside buffers */
+                length += read_variable_length(&ip, iend - LASTLITERALS + 1, (int) endOnInput, 0, &error);
                 if (error != ok) { goto _output_error; }
-                if ((safeDecode) && unlikely((uptrval)(op)+length<(uptrval)op)) { goto _output_error; } /* overflow detection */
+                if ((safeDecode) &&
+                    unlikely((uptrval) (op) + length < (uptrval) op)) { goto _output_error; } /* overflow detection */
                 length += MINMATCH;
                 if (op + length >= oend - FASTLOOP_SAFE_DISTANCE) {
                     goto safe_match_copy;
                 }
-            } else {
+            }
+            else {
                 length += MINMATCH;
                 if (op + length >= oend - FASTLOOP_SAFE_DISTANCE) {
                     goto safe_match_copy;
@@ -2002,57 +2066,66 @@ LZ4_decompress_generic(
                         assert(op + 18 <= oend);
 
                         LZ4_memcpy(op, match, 8);
-                        LZ4_memcpy(op+8, match+8, 8);
-                        LZ4_memcpy(op+16, match+16, 2);
+                        LZ4_memcpy(op + 8, match + 8, 8);
+                        LZ4_memcpy(op + 16, match + 16, 2);
                         op += length;
                         continue;
-            }   }   }
+                    }
+                }
+            }
 
-            if (checkOffset && (unlikely(match + dictSize < lowPrefix))) { goto _output_error; } /* Error : offset outside buffers */
+            if (checkOffset &&
+                (unlikely(match + dictSize < lowPrefix))) { goto _output_error; } /* Error : offset outside buffers */
             /* match starting within external dictionary */
-            if ((dict==usingExtDict) && (match < lowPrefix)) {
-                if (unlikely(op+length > oend-LASTLITERALS)) {
+            if ((dict == usingExtDict) && (match < lowPrefix)) {
+                if (unlikely(op + length > oend - LASTLITERALS)) {
                     if (partialDecoding) {
                         DEBUGLOG(7, "partialDecoding: dictionary match, close to dstEnd");
-                        length = MIN(length, (size_t)(oend-op));
-                    } else {
+                        length = MIN(length, (size_t) (oend - op));
+                    }
+                    else {
                         goto _output_error;  /* end-of-block condition violated */
-                }   }
+                    }
+                }
 
-                if (length <= (size_t)(lowPrefix-match)) {
+                if (length <= (size_t) (lowPrefix - match)) {
                     /* match fits entirely within external dictionary : just copy */
-                    memcpy(op, dictEnd - (lowPrefix-match), length);
+                    memcpy(op, dictEnd - (lowPrefix - match), length);
                     op += length;
-                } else {
+                }
+                else {
                     /* match stretches into both external dictionary and current block */
-                    size_t const copySize = (size_t)(lowPrefix - match);
+                    size_t const copySize = (size_t) (lowPrefix - match);
                     size_t const restSize = length - copySize;
                     LZ4_memcpy(op, dictEnd - copySize, copySize);
                     op += copySize;
-                    if (restSize > (size_t)(op - lowPrefix)) {  /* overlap copy */
-                        BYTE* const endOfMatch = op + restSize;
-                        const BYTE* copyFrom = lowPrefix;
+                    if (restSize > (size_t) (op - lowPrefix)) {  /* overlap copy */
+                        BYTE *const endOfMatch = op + restSize;
+                        const BYTE *copyFrom = lowPrefix;
                         while (op < endOfMatch) { *op++ = *copyFrom++; }
-                    } else {
+                    }
+                    else {
                         LZ4_memcpy(op, lowPrefix, restSize);
                         op += restSize;
-                }   }
+                    }
+                }
                 continue;
             }
 
             /* copy match within block */
             cpy = op + length;
 
-            assert((op <= oend) && (oend-op >= 32));
-            if (unlikely(offset<16)) {
+            assert((op <= oend) && (oend - op >= 32));
+            if (unlikely(offset < 16)) {
                 LZ4_memcpy_using_offset(op, match, cpy, offset);
-            } else {
+            }
+            else {
                 LZ4_wildCopy32(op, match, cpy);
             }
 
             op = cpy;   /* wildcopy correction */
         }
-    safe_decode:
+        safe_decode:
 #endif
 
         /* Main Loop : decode remaining sequences where output < FASTLOOP_SAFE_DISTANCE */
@@ -2142,7 +2215,7 @@ LZ4_decompress_generic(
                      * due to lack of input.
                      */
                     if (ip + length > iend) {
-                        length = (size_t)(iend - ip);
+                        length = (size_t) (iend - ip);
                         cpy = op + length;
                     }
                     /* Finishing in the middle of a literals segment,
@@ -2151,9 +2224,10 @@ LZ4_decompress_generic(
                     if (cpy > oend) {
                         cpy = oend;
                         assert(op <= oend);
-                        length = (size_t)(oend - op);
+                        length = (size_t) (oend - op);
                     }
-                } else {
+                }
+                else {
                     /* We must be on the last sequence because of the parsing limitations so check
                      * that we exactly regenerate the original size (must be exact when !endOnInput).
                      */
@@ -2180,7 +2254,8 @@ LZ4_decompress_generic(
                 if (!partialDecoding || (cpy == oend) || (ip >= (iend - 2))) {
                     break;
                 }
-            } else {
+            }
+            else {
                 LZ4_wildCopy8(op, ip, cpy);   /* may overwrite up to WILDCOPYLENGTH beyond cpy */
                 ip += length;
                 op = cpy;
@@ -2212,25 +2287,27 @@ LZ4_decompress_generic(
             /* match starting within external dictionary */
             if ((dict == usingExtDict) && (match < lowPrefix)) {
                 if (unlikely(op + length > oend - LASTLITERALS)) {
-                    if (partialDecoding) length = MIN(length, (size_t)(oend - op));
+                    if (partialDecoding) length = MIN(length, (size_t) (oend - op));
                     else goto _output_error;   /* doesn't respect parsing restriction */
                 }
 
-                if (length <= (size_t)(lowPrefix - match)) {
+                if (length <= (size_t) (lowPrefix - match)) {
                     /* match fits entirely within external dictionary : just copy */
                     memcpy(op, dictEnd - (lowPrefix - match), length);
                     op += length;
-                } else {
+                }
+                else {
                     /* match stretches into both external dictionary and current block */
-                    size_t const copySize = (size_t)(lowPrefix - match);
+                    size_t const copySize = (size_t) (lowPrefix - match);
                     size_t const restSize = length - copySize;
                     LZ4_memcpy(op, dictEnd - copySize, copySize);
                     op += copySize;
-                    if (restSize > (size_t)(op - lowPrefix)) {  /* overlap copy */
+                    if (restSize > (size_t) (op - lowPrefix)) {  /* overlap copy */
                         BYTE *const endOfMatch = op + restSize;
                         const BYTE *copyFrom = lowPrefix;
                         while (op < endOfMatch) *op++ = *copyFrom++;
-                    } else {
+                    }
+                    else {
                         LZ4_memcpy(op, lowPrefix, restSize);
                         op += restSize;
                     }
@@ -2245,12 +2322,13 @@ LZ4_decompress_generic(
             /* partialDecoding : may end anywhere within the block */
             assert(op <= oend);
             if (partialDecoding && (cpy > oend - MATCH_SAFEGUARD_DISTANCE)) {
-                size_t const mlen = MIN(length, (size_t)(oend - op));
+                size_t const mlen = MIN(length, (size_t) (oend - op));
                 const BYTE *const matchEnd = match + mlen;
                 BYTE *const copyEnd = op + mlen;
                 if (matchEnd > op) {   /* overlap copy */
                     while (op < copyEnd) { *op++ = *match++; }
-                } else {
+                }
+                else {
                     LZ4_memcpy(op, match, mlen);
                 }
                 op = copyEnd;
@@ -2267,7 +2345,8 @@ LZ4_decompress_generic(
                 match += inc32table[offset];
                 LZ4_memcpy(op + 4, match, 4);
                 match -= dec64table[offset];
-            } else {
+            }
+            else {
                 LZ4_memcpy(op, match, 8);
                 match += 8;
             }
@@ -2283,7 +2362,8 @@ LZ4_decompress_generic(
                     op = oCopyLimit;
                 }
                 while (op < cpy) { *op++ = *match++; }
-            } else {
+            }
+            else {
                 LZ4_memcpy(op, match, 8);
                 if (length > 16) { LZ4_wildCopy8(op + 8, match + 8, cpy); }
             }
@@ -2294,7 +2374,8 @@ LZ4_decompress_generic(
         if (endOnInput) {
             DEBUGLOG(5, "decoded %i bytes", (int) (((char *) op) - dst));
             return (int) (((char *) op) - dst);     /* Nb of output bytes decoded */
-        } else {
+        }
+        else {
             return (int) (((const char *) ip) - src);   /* Nb of input bytes read */
         }
 
@@ -2417,7 +2498,8 @@ int LZ4_setStreamDecode(LZ4_streamDecode_t *LZ4_streamDecode, const char *dictio
     if (dictSize) {
         assert(dictionary != NULL);
         lz4sd->prefixEnd = (const BYTE *) dictionary + dictSize;
-    } else {
+    }
+    else {
         lz4sd->prefixEnd = (const BYTE *) dictionary;
     }
     lz4sd->externalDict = NULL;
@@ -2464,7 +2546,8 @@ LZ4_decompress_safe_continue(LZ4_streamDecode_t *LZ4_streamDecode, const char *s
         if (result <= 0) return result;
         lz4sd->prefixSize = (size_t) result;
         lz4sd->prefixEnd = (BYTE *) dest + result;
-    } else if (lz4sd->prefixEnd == (BYTE *) dest) {
+    }
+    else if (lz4sd->prefixEnd == (BYTE *) dest) {
         /* They're rolling the current segment. */
         if (lz4sd->prefixSize >= 64 KB - 1)
             result = LZ4_decompress_safe_withPrefix64k(source, dest, compressedSize, maxOutputSize);
@@ -2477,7 +2560,8 @@ LZ4_decompress_safe_continue(LZ4_streamDecode_t *LZ4_streamDecode, const char *s
         if (result <= 0) return result;
         lz4sd->prefixSize += (size_t) result;
         lz4sd->prefixEnd += result;
-    } else {
+    }
+    else {
         /* The buffer wraps around, or they're switching to another buffer. */
         lz4sd->extDictSize = lz4sd->prefixSize;
         lz4sd->externalDict = lz4sd->prefixEnd - lz4sd->extDictSize;
@@ -2504,7 +2588,8 @@ LZ4_decompress_fast_continue(LZ4_streamDecode_t *LZ4_streamDecode, const char *s
         if (result <= 0) return result;
         lz4sd->prefixSize = (size_t) originalSize;
         lz4sd->prefixEnd = (BYTE *) dest + originalSize;
-    } else if (lz4sd->prefixEnd == (BYTE *) dest) {
+    }
+    else if (lz4sd->prefixEnd == (BYTE *) dest) {
         if (lz4sd->prefixSize >= 64 KB - 1 || lz4sd->extDictSize == 0)
             result = LZ4_decompress_fast(source, dest, originalSize);
         else
@@ -2513,7 +2598,8 @@ LZ4_decompress_fast_continue(LZ4_streamDecode_t *LZ4_streamDecode, const char *s
         if (result <= 0) return result;
         lz4sd->prefixSize += (size_t) originalSize;
         lz4sd->prefixEnd += originalSize;
-    } else {
+    }
+    else {
         lz4sd->extDictSize = lz4sd->prefixSize;
         lz4sd->externalDict = lz4sd->prefixEnd - lz4sd->extDictSize;
         result = LZ4_decompress_fast_extDict(source, dest, originalSize,

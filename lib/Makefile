@@ -110,6 +110,7 @@ liblz4.a: $(SRCFILES)
 ifeq ($(BUILD_STATIC),yes)  # can be disabled on command line
 	@echo compiling static library
 	$(COMPILE.c) $^
+	@echo $@ *.o
 	$(AR) rcs $@ *.o
 endif
 

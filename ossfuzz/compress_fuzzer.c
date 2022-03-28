@@ -13,8 +13,7 @@
 #include "fuzz_data_producer.h"
 #include "lz4.h"
 
-int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size)
-{
+int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
     FUZZ_dataProducer_t *producer = FUZZ_dataProducer_create(data, size);
     size_t const dstCapacitySeed = FUZZ_dataProducer_retrieve32(producer);
     size = FUZZ_dataProducer_remainingBytes(producer);
@@ -22,15 +21,15 @@ int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size)
     size_t const compressBound = LZ4_compressBound(size);
     size_t const dstCapacity = FUZZ_getRange_from_uint32(dstCapacitySeed, 0, compressBound);
 
-    char* const dst = (char*)malloc(dstCapacity);
-    char* const rt = (char*)malloc(size);
+    char *const dst = (char *) malloc(dstCapacity);
+    char *const rt = (char *) malloc(size);
 
     FUZZ_ASSERT(dst);
     FUZZ_ASSERT(rt);
 
     /* If compression succeeds it must round trip correctly. */
     {
-        int const dstSize = LZ4_compress_default((const char*)data, dst,
+        int const dstSize = LZ4_compress_default((const char *) data, dst,
                                                  size, dstCapacity);
         if (dstSize > 0) {
             int const rtSize = LZ4_decompress_safe(dst, rt, dstSize, size);
@@ -42,7 +41,7 @@ int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size)
     if (dstCapacity > 0) {
         /* Compression succeeds and must round trip correctly. */
         int compressedSize = size;
-        int const dstSize = LZ4_compress_destSize((const char*)data, dst,
+        int const dstSize = LZ4_compress_destSize((const char *) data, dst,
                                                   &compressedSize, dstCapacity);
         FUZZ_ASSERT(dstSize > 0);
         int const rtSize = LZ4_decompress_safe(dst, rt, dstSize, size);

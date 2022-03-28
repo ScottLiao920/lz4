@@ -15,8 +15,7 @@
 #include "lz4_helpers.h"
 #include "fuzz_data_producer.h"
 
-int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size)
-{
+int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
     FUZZ_dataProducer_t *producer = FUZZ_dataProducer_create(data, size);
     LZ4F_preferences_t const prefs = FUZZ_dataProducer_preferences(producer);
     size_t const dstCapacitySeed = FUZZ_dataProducer_retrieve32(producer);
@@ -25,11 +24,11 @@ int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size)
     size_t const compressBound = LZ4F_compressFrameBound(size, &prefs);
     size_t const dstCapacity = FUZZ_getRange_from_uint32(dstCapacitySeed, 0, compressBound);
 
-    char* const dst = (char*)malloc(dstCapacity);
-    char* const rt = (char*)malloc(size);
+    char *const dst = (char *) malloc(dstCapacity);
+    char *const rt = (char *) malloc(size);
 
-    FUZZ_ASSERT(dst!=NULL);
-    FUZZ_ASSERT(rt!=NULL);
+    FUZZ_ASSERT(dst != NULL);
+    FUZZ_ASSERT(rt != NULL);
 
     /* If compression succeeds it must round trip correctly. */
     size_t const dstSize =

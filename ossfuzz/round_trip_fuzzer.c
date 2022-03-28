@@ -12,8 +12,7 @@
 #include "lz4.h"
 #include "fuzz_data_producer.h"
 
-int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size)
-{
+int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
     FUZZ_dataProducer_t *producer = FUZZ_dataProducer_create(data, size);
     size_t const partialCapacitySeed = FUZZ_dataProducer_retrieve32(producer);
     size = FUZZ_dataProducer_remainingBytes(producer);
@@ -21,14 +20,14 @@ int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size)
     size_t const partialCapacity = FUZZ_getRange_from_uint32(partialCapacitySeed, 0, size);
     size_t const dstCapacity = LZ4_compressBound(size);
 
-    char* const dst = (char*)malloc(dstCapacity);
-    char* const rt = (char*)malloc(size);
+    char *const dst = (char *) malloc(dstCapacity);
+    char *const rt = (char *) malloc(size);
 
     FUZZ_ASSERT(dst);
     FUZZ_ASSERT(rt);
 
     /* Compression must succeed and round trip correctly. */
-    int const dstSize = LZ4_compress_default((const char*)data, dst,
+    int const dstSize = LZ4_compress_default((const char *) data, dst,
                                              size, dstCapacity);
     FUZZ_ASSERT(dstSize > 0);
 
@@ -38,7 +37,7 @@ int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size)
 
     /* Partial decompression must succeed. */
     {
-        char* const partial = (char*)malloc(partialCapacity);
+        char *const partial = (char *) malloc(partialCapacity);
         FUZZ_ASSERT(partial);
         int const partialSize = LZ4_decompress_safe_partial(
                 dst, partial, dstSize, partialCapacity, partialCapacity);

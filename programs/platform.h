@@ -48,7 +48,7 @@ extern "C" {
   || defined __x86_64__s || defined _M_X64                                                                          /* x86 64-bit */    \
   || defined __arm64__ || defined __aarch64__ || defined __ARM64_ARCH_8__                                           /* ARM 64-bit */    \
   || (defined __mips  && (__mips == 64 || __mips == 4 || __mips == 3))                                              /* MIPS 64-bit */   \
-  || defined _LP64 || defined __LP64__ /* NetBSD, OpenBSD */ || defined __64BIT__ /* AIX */ || defined _ADDR64 /* Cray */               \
+ || defined _LP64 || defined __LP64__ /* NetBSD, OpenBSD */ || defined __64BIT__ /* AIX */ || defined _ADDR64 /* Cray */               \
   || (defined __SIZEOF_POINTER__ && __SIZEOF_POINTER__ == 8) /* gcc */
 #  if !defined(__64BIT__)
 #    define __64BIT__  1
@@ -79,10 +79,10 @@ extern "C" {
 *  PLATFORM_POSIX_VERSION >= 1 is equal to found _POSIX_VERSION
 ************************************************************** */
 #if !defined(_WIN32) && (defined(__unix__) || defined(__unix) || (defined(__APPLE__) && defined(__MACH__)) /* UNIX-like OS */ \
-   || defined(__midipix__) || defined(__VMS))
+ || defined(__midipix__) || defined(__VMS))
 #  if (defined(__APPLE__) && defined(__MACH__)) || defined(__SVR4) || defined(_AIX) || defined(__hpux) /* POSIX.1-2001 (SUSv3) conformant */ \
-     || defined(__DragonFly__) || defined(__FreeBSD__) || defined(__NetBSD__) || defined(__OpenBSD__)  || defined(__MidnightBSD__) /* BSD distros */ \
-     || defined(__HAIKU__)
+ || defined(__DragonFly__) || defined(__FreeBSD__) || defined(__NetBSD__) || defined(__OpenBSD__) || defined(__MidnightBSD__) /* BSD distros */ \
+ || defined(__HAIKU__)
 #    define PLATFORM_POSIX_VERSION 200112L
 #  else
 #    if defined(__linux__) || defined(__linux)
@@ -90,7 +90,9 @@ extern "C" {
 #        define _POSIX_C_SOURCE 200809L  /* use feature test macro */
 #      endif
 #    endif
+
 #    include <unistd.h>  /* declares _POSIX_VERSION */
+
 #    if defined(_POSIX_VERSION)  /* POSIX compliant */
 #      define PLATFORM_POSIX_VERSION _POSIX_VERSION
 #    else
@@ -107,7 +109,9 @@ extern "C" {
 *  Detect if isatty() and fileno() are available
 *********************************************** */
 #if (defined(__linux__) && (PLATFORM_POSIX_VERSION >= 1)) || (PLATFORM_POSIX_VERSION >= 200112L) || defined(__DJGPP__)
+
 #  include <unistd.h>   /* isatty */
+
 #  define IS_CONSOLE(stdStream) isatty(fileno(stdStream))
 #elif defined(MSDOS) || defined(OS2) || defined(__CYGWIN__)
 #  include <io.h>       /* _isatty */
@@ -145,7 +149,6 @@ static __inline int IS_CONSOLE(FILE* stdStream)
 #  define SET_BINARY_MODE(file)
 #  define SET_SPARSE_FILE_MODE(file)
 #endif
-
 
 
 #if defined (__cplusplus)

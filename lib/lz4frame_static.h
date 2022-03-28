@@ -42,6 +42,7 @@
  */
 
 #define LZ4F_STATIC_LINKING_ONLY
+
 #include "lz4frame.h"
 
 #endif /* LZ4FRAME_STATIC_H_0398209384 */

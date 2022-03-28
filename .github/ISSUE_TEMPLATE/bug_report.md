@@ -1,7 +1,5 @@
 ---
-name: Bug report
-about: Create a report to help us improve
-title: ''
+name: Bug report about: Create a report to help us improve title: ''
 labels: ''
 assignees: ''
 
@@ -15,18 +13,19 @@ Please describe what you expected to happen.
 
 **To Reproduce**
 Steps to reproduce the behavior:
+
 1. Go to '...'
 2. Click on '....'
 3. Scroll down to '....'
-4. See error '...'
-If applicable, add screenshots to help explain your problem.
+4. See error '...' If applicable, add screenshots to help explain your problem.
 
 **System (please complete the following information):**
- - OS: [e.g. Mac]
- - Version [e.g. 22]
- - Compiler [e.g. gcc]
- - Build System [e.g. Makefile]
- - Other hardware specs [e.g Core 2 duo...]
+
+- OS: [e.g. Mac]
+- Version [e.g. 22]
+- Compiler [e.g. gcc]
+- Build System [e.g. Makefile]
+- Other hardware specs [e.g Core 2 duo...]
 
 **Additional context**
 Add any other context about the problem here.

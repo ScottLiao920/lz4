@@ -43,8 +43,7 @@
 /*  validate() :
  * @return 1 if tag is compatible, 0 if not.
  */
-static int validate(const char* const tag)
-{
+static int validate(const char *const tag) {
     size_t const tagLength = strlen(tag);
     size_t const verLength = strlen(LZ4_VERSION_STRING);
 
@@ -52,16 +51,15 @@ static int validate(const char* const tag)
     if (tag[0] != 'v') return 0;
     if (tagLength <= verLength) return 0;
 
-    if (strncmp(LZ4_VERSION_STRING, tag+1, verLength)) return 0;
+    if (strncmp(LZ4_VERSION_STRING, tag + 1, verLength)) return 0;
 
     return 1;
 }
 
-int main(int argc, const char** argv)
-{
-    const char* const exeName = argv[0];
-    const char* const tag = argv[1];
-    if (argc!=2) {
+int main(int argc, const char **argv) {
+    const char *const exeName = argv[0];
+    const char *const tag = argv[1];
+    if (argc != 2) {
         printf("incorrect usage : %s tag \n", exeName);
         return 2;
     }

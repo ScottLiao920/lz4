@@ -4,10 +4,10 @@ Projects for various integrated development environments (IDE)
 #### Included projects
 
 The following projects are included with the lz4 distribution:
+
 - `cmake` - CMake project
 - `VS2010` - Visual Studio 2010 project (which also works well with Visual Studio 2012, 2013, 2015)
 - `VS2017` - Visual Studio 2017 project
-
 
 #### How to compile lz4 with Visual Studio
 
@@ -20,13 +20,11 @@ The following projects are included with the lz4 distribution:
 7. Press F7 on keyboard or select `BUILD` from the menu bar and choose `Build Solution`.
 8. If compilation will be fine a compiled executable will be in `build\VS2010\bin\x64_Release\lz4.exe`
 
-
 #### Projects available within lz4.sln
 
 The Visual Studio solution file `lz4.sln` contains many projects that will be compiled to the
 `build\VS2010\bin\$(Platform)_$(Configuration)` directory. For example `lz4` set to `x64` and
-`Release` will be compiled to `build\VS2010\bin\x64_Release\lz4.exe`. The solution file contains the
-following projects:
+`Release` will be compiled to `build\VS2010\bin\x64_Release\lz4.exe`. The solution file contains the following projects:
 
 - `lz4` : Command Line Utility, supporting gzip-like arguments
 - `datagen` : Synthetic and parametrable data generator, for tests
@@ -37,19 +35,16 @@ following projects:
 - `liblz4-dll` : A dynamic LZ4 library (DLL) compiled to `liblz4.dll` with the import library `liblz4.lib`
 - `fullbench-dll` : The fullbench program compiled with the import library; the executable requires LZ4 DLL
 
-
 #### Using LZ4 DLL with Microsoft Visual C++ project
 
 The header files `lib\lz4.h`, `lib\lz4hc.h`, `lib\lz4frame.h` and the import library
-`build\VS2010\bin\$(Platform)_$(Configuration)\liblz4.lib` are required to
-compile a project using Visual C++.
+`build\VS2010\bin\$(Platform)_$(Configuration)\liblz4.lib` are required to compile a project using Visual C++.
 
-1. The path to header files should be added to `Additional Include Directories` that can
-   be found in Project Properties of Visual Studio IDE in the `C/C++` Property Pages on the `General` page.
-2. The import library has to be added to `Additional Dependencies` that can
-   be found in Project Properties in the `Linker` Property Pages on the `Input` page.
-   If one will provide only the name `liblz4.lib` without a full path to the library
-   then the directory has to be added to `Linker\General\Additional Library Directories`.
+1. The path to header files should be added to `Additional Include Directories` that can be found in Project Properties
+   of Visual Studio IDE in the `C/C++` Property Pages on the `General` page.
+2. The import library has to be added to `Additional Dependencies` that can be found in Project Properties in
+   the `Linker` Property Pages on the `Input` page. If one will provide only the name `liblz4.lib` without a full path
+   to the library then the directory has to be added to `Linker\General\Additional Library Directories`.
 
 The compiled executable will require LZ4 DLL which is available at
 `build\VS2010\bin\$(Platform)_$(Configuration)\liblz4.dll`.

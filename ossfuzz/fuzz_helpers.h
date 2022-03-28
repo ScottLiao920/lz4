@@ -26,11 +26,13 @@ extern "C" {
 
 #define LZ4_COMMONDEFS_ONLY
 #ifndef LZ4_SRC_INCLUDED
+
 #include "lz4.c"   /* LZ4_count, constants, mem */
+
 #endif
 
-#define MIN(a,b)   ( (a) < (b) ? (a) : (b) )
-#define MAX(a,b)   ( (a) > (b) ? (a) : (b) )
+#define MIN(a, b)   ( (a) < (b) ? (a) : (b) )
+#define MAX(a, b)   ( (a) > (b) ? (a) : (b) )
 
 #define FUZZ_QUOTE_IMPL(str) #str
 #define FUZZ_QUOTE(str) FUZZ_QUOTE_IMPL(str)
@@ -47,7 +49,7 @@ extern "C" {
 
 #if defined(__GNUC__)
 #define FUZZ_STATIC static __inline __attribute__((unused))
-#elif defined(__cplusplus) ||                                                  \
+#elif defined(__cplusplus) || \
     (defined(__STDC_VERSION__) && (__STDC_VERSION__ >= 199901L) /* C99 */)
 #define FUZZ_STATIC static inline
 #elif defined(_MSC_VER)
@@ -60,7 +62,7 @@ extern "C" {
  * Deterministically constructs a seed based on the fuzz input.
  * Consumes up to the first FUZZ_RNG_SEED_SIZE bytes of the input.
  */
-FUZZ_STATIC uint32_t FUZZ_seed(uint8_t const **src, size_t* size) {
+FUZZ_STATIC uint32_t FUZZ_seed(uint8_t const **src, size_t *size) {
     uint8_t const *data = *src;
     size_t const toHash = MIN(FUZZ_RNG_SEED_SIZE, *size);
     *size -= toHash;

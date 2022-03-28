@@ -25,15 +25,19 @@
 
 #include <stddef.h>
 
-int BMK_benchFiles(const char** fileNamesTable, unsigned nbFiles,
+int BMK_benchFiles(const char **fileNamesTable, unsigned nbFiles,
                    int cLevel, int cLevelLast,
-                   const char* dictFileName);
+                   const char *dictFileName);
 
 /* Set Parameters */
 void BMK_setNbSeconds(unsigned nbLoops);
+
 void BMK_setBlockSize(size_t blockSize);
+
 void BMK_setAdditionalParam(int additionalParam);
+
 void BMK_setNotificationLevel(unsigned level);
+
 void BMK_setBenchSeparately(int separate);
 
 #endif   /* BENCH_H_125623623633 */

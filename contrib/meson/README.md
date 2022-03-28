@@ -1,10 +1,9 @@
 Meson build system for lz4
 ==========================
 
-Meson is a build system designed to optimize programmer productivity.
-It aims to do this by providing simple, out-of-the-box support for
-modern software development tools and practices, such as unit tests,
-coverage reports, Valgrind, CCache and the like.
+Meson is a build system designed to optimize programmer productivity. It aims to do this by providing simple,
+out-of-the-box support for modern software development tools and practices, such as unit tests, coverage reports,
+Valgrind, CCache and the like.
 
 This Meson build system is provided with no guarantee.
 
